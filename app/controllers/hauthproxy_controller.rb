@@ -1,9 +1,10 @@
 class HauthproxyController < ApplicationController
+ 
+  before_filter :authenticate_user!, :except => [:validate, :invalid]
+
   def validate
-    logger.warn('Params: ' + params.inspect)
   end
 
   def invalid
-    logger.warn('Params: ' + params.inspect)
   end
 end
