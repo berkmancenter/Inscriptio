@@ -1,4 +1,8 @@
 Inscriptio::Application.routes.draw do
+
+  get "hauthproxy/validate"
+  get "hauthproxy/invalid"
+
   resources :emails do
     collection do
       get 'asset_type'
