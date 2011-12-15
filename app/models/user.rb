@@ -3,11 +3,11 @@ class User < ActiveRecord::Base
   include Rails.application.routes.url_helpers
   # Include default devise modules. Others available are:
   # :token_authenticatable, :encryptable, :confirmable, :lockable, :timeoutable and :omniauthable
-  devise :database_authenticatable,# :registerable,
-         :recoverable, :rememberable, :trackable, :validatable
+  devise :harvard_auth_proxy_authenticatable,# :registerable,
+         :rememberable, :trackable
 
   # Setup accessible (or protected) attributes for your model
-  attr_accessible :email, :password, :password_confirmation, :remember_me, :user_type_id, :school_affiliation_id, :first_name, :last_name
+  attr_accessible :mail, :password, :password_confirmation, :remember_me, :user_type_id, :school_affiliation_id, :first_name, :last_name
   
   belongs_to :user_type
   belongs_to :school_affiliation
@@ -18,11 +18,15 @@ class User < ActiveRecord::Base
   has_many :emails
 #  has_one :authentication_source, :through => :user_type
 
-  validates_presence_of :email
-  validates_uniqueness_of :email
-  validates_format_of :email, :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i
+  validates_presence_of :mail
+  validates_uniqueness_of :mail
+  validates_format_of :mail, :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i
   
   after_create :post_save_hooks
+
+  def email
+    self.mail
+  end
   
   def to_s
     %Q|#{email}|
@@ -30,7 +34,7 @@ class User < ActiveRecord::Base
   
   def self.search(search)
     if search
-      find(:all, :conditions => ['lower(email) LIKE ?', "%#{search}%"])
+      find(:all, :conditions => ['lower(mail) LIKE ?', "%#{search}%"])
     end
   end
   

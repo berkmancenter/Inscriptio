@@ -1,7 +1,9 @@
 Inscriptio::Application.routes.draw do
 
-  get "hauthproxy/validate"
-  get "hauthproxy/invalid"
+  devise_scope :user do
+    match "/hauthproxy/valid" => "devise/hauthproxy#valid"
+    match '/hauthproxy/invalid' => 'devise/hauthproxy#invalid'
+  end
 
   resources :emails do
     collection do

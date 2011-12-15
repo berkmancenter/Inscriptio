@@ -11,6 +11,7 @@ gem 'mini_magick', '3.2'
 gem 'fastercsv', '1.5.4'
 gem 'breadcrumbs', '0.1.6'
 gem 'rake', '0.9.2'
+gem 'devise_harvard_auth_proxy'
 
 
 group :development,:test do

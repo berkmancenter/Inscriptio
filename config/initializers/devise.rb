@@ -1,75 +1,3 @@
-HOME = ''
-GPGPASSPHRASE = ''
-AUTHEN_APPLICATION = 'HLS_BCIS_LRRS_DEV'
-PIN_URL = 'https://www.pin1.harvard.edu/pin/authenticate?__authen_application='
-
-module Devise
-  module Strategies
-    class Authzproxy < Devise::Strategies::Base
-
-#      def valid?
-#        params[:_azp_token]
-#      end
-
-      def authenticate!
-        if ! params[:_azp_token]
-          redirect!(PIN_URL + AUTHEN_APPLICATION)
-        end
-        decrypted_azp_token = decrypt_authzproxy_token(params[:_azp_token])
-        user_info = parse_authzproxy_token(decrypted_azp_token)
-        logger.error('User info: ' + user_info)
-
-        if ! user_info.nil?
-          # create user account if none exists
-          u = User.find(:first, :conditions => { :email => user_info[:email] }) || User.create({ :username => login })
-          success!(u)
-        else
-          # This should be unlikely, as we don't get the azp token unless they've successfully auth'd.
-          fail!("Could not log in")
-        end
-
-      end
-
-      def parse_authzproxy_token(decrypted_message)
-        encoded_data, encoded_signature = decrypted_message.split('&')
-        data      = CGI.unescape(encoded_data)
-        signature = CGI.unescape(encoded_signature)
-        authentication_data, encoded_attribute_data = data.split('&')
-        return unless valid_authentication_data(authentication_data)
-        attribute_data = Hash[CGI.unescape(encoded_attribute_data).split('|').collect { |el| el.split('=') }]
-        return attribute_data
-      end
-
-      def valid_authentication_data(authentication_data)
-        user_id, time_stamp, user_ip, app_id, id_type = authentication_data.split('|')
-
-        # check for expired time_stamp
-        return false if Time.parse(time_stamp).localtime + 120 < Time.now
-
-        # check for invalid application ID
-        return false if app_id != PinSession.app_id
-
-        return true
-      end
-
-      def decrypt_authzproxy_token(encrypted_message)
-        begin
-          Open3.popen3("/usr/bin/gpg --decrypt --homedir=#{HOME} --passphrase=#{GPGPASSPHRASE} --no-tty 2> /dev/null") do |stdin, stdout, error|
-            stdin.write(encrypted_message)
-            stdin.close
-            stdout.read
-          end
-        rescue Exception => e
-          return nil
-        end
-      end
-
-    end
-  end
-end
-
-
-
 # Use this hook to configure devise mailer, warden hooks and so forth. The first
 # four configuration values can also be set straight in your models.
 Devise.setup do |config|
@@ -252,6 +180,11 @@ Devise.setup do |config|
    config.warden do |manager|
   #   manager.failure_app   = AnotherApp
   #   manager.intercept_401 = false
-     manager.default_strategies :authzproxy
+    manager.default_strategies(:scope => :user).unshift :harvard_auth_proxy_authenticatable
    end
+
+  config.authen_application = 'HLS_BCIS_LRRS_DEV'
+  config.identifier = :mail
+  config.debug = true
+
 end
