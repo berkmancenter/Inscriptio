@@ -11,13 +11,18 @@ gem 'mini_magick', '3.2'
 gem 'fastercsv', '1.5.4'
 gem 'breadcrumbs', '0.1.6'
 gem 'rake', '0.9.2'
+gem 'devise_harvard_auth_proxy'
 
 
 group :development,:test do
   gem 'cucumber-rails', '0.4.0'
   gem 'capybara', '0.4.1.2'
   gem 'database_cleaner', '0.6.6'
-  gem 'shoulda', '2.11.3'
+
+  # causes a bizarre error https://github.com/jimweirich/rake/issues/51
+  # under ruby 1.9.3
+#  gem 'shoulda', '2.11.3'
+
   gem 'sqlite3'
   gem 'selenium-client', '1.2.18'
   gem 'selenium-webdriver', '0.1.4'
